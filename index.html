@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌳 Đại Thụ Khai Thác - Vàng Coin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0F172A',
+                        cardBg: '#1E293B',
+                        accent: '#F43F5E',
+                        accentLight: '#FB7185',
+                        gold: '#FBBF24',
+                        greenOk: '#10B981',
+                        warn: '#F59E0B',
+                        blueInfo: '#3B82F6'
+                    },
+                    fontFamily: {
+                        game: ['"Segoe UI"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'game', sans-serif; }
+        body { background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%); min-height: 100vh; }
+
+        .btn-game {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-game::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+        .btn-game:hover::after { transform: translateY(100%); }
+        .btn-game:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 20px rgba(244,63,94,0.3); }
+        .btn-game:active { transform: translateY(0) scale(0.98); }
+        .btn-game:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .tab-btn { transition: all 0.2s ease; border-bottom: 3px solid transparent; }
+        .tab-btn.active { border-bottom-color: #F43F5E; color: #F43F5E; font-weight: 700; background: rgba(244,63,94,0.1); }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.05); }
+
+        .card-game {
+            background: rgba(30,41,59,0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .card-game:hover { transform: translateY(-3px); border-color: rgba(244,63,94,0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+        .progress-bar { background: rgba(255,255,255,0.1); overflow: hidden; border-radius: 999px; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #F43F5E, #FB7185);
+            border-radius: 999px;
+            transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0%{transform: translateX(-100%)} 100%{transform: translateX(100%)} }
+
+        .balance-anim { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{transform: scale(1)} 50%{transform: scale(1.02)} }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            max-width: 80vw;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { background: #10B981; }
+        .toast.error { background: #EF4444; }
+        .toast.info { background: #3B82F6; }
+
+        .rank-item { transition: all 0.2s ease; }
+        .rank-item:hover { transform: scale(1.01); padding-left: 18px; }
+        .rank-item.me { outline: 2px solid #F43F5E; }
+        .rank-1 { background: linear-gradient(90deg, rgba(251,191,36,0.2), transparent); border-left: 3px solid #FBBF24; }
+        .rank-2 { background: linear-gradient(90deg, rgba(156,163,175,0.2), transparent); border-left: 3px solid #9CA3AF; }
+        .rank-3 { background: linear-gradient(90deg, rgba(249,115,22,0.2), transparent); border-left: 3px solid #F97316; }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+        .withdraw-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        .withdraw-input:focus {
+            outline: none;
+            border-color: #F43F5E;
+            box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
+        }
+        .withdraw-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .mining-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div id="toast" class="toast"></div>
+
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <header class="text-center mb-6">
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-accent">🌳 ĐẠI THỤ KHAI THÁC</h1>
+                <span class="mining-indicator" id="miningIndicator" title="Đang khai thác nền"></span>
+            </div>
+            <div class="balance-anim text-4xl md:text-5xl font-black text-gold mb-2" id="coinBalance">0.0000</div>
+            <p class="text-gray-400">💰 Coin Vàng · điểm số trong game, không quy đổi tiền thật</p>
+            <p class="text-xs text-green-400 mt-1" id="offlineEarnings"></p>
+        </header>
+
+        <div class="flex overflow-x-auto gap-1 mb-5 bg-cardBg rounded-xl p-1.5">
+            <button class="tab-btn active flex-1 py-3 px-2 rounded-lg text-sm md:text-base whitespace-nowrap" data-tab="mine">
+                <i class="fa-solid fa-tree mr-1"></i> Khai Thác
+            </button>
+            <button class="tab-btn flex-1 py-3 px-2 rounded-lg text-sm md:text-base whitespace-nowrap" data-tab="pets">
+                <i class="fa-solid fa-paw mr-1"></i> Thú Cưng
+            </button>
+            <button class="tab-btn flex-1 py-3 px-2 rounded-lg text-sm md:text-base whitespace-nowrap" data-tab="tasks">
+                <i class="fa-solid fa-list-check mr-1"></i> Nhiệm Vụ
+            </button>
+            <button class="tab-btn flex-1 py-3 px-2 rounded-lg text-sm md:text-base whitespace-nowrap" data-tab="ranks">
+                <i class="fa-solid fa-trophy mr-1"></i> Xếp Hạng
+            </button>
+            <button class="tab-btn flex-1 py-3 px-2 rounded-lg text-sm md:text-base whitespace-nowrap" data-tab="withdraw">
+                <i class="fa-solid fa-money-bill-transfer mr-1"></i> Rút Tiền
+            </button>
+        </div>
+
+        <!-- Khai thác -->
+        <div class="tab-content active" id="tab-mine">
+            <div class="card-game rounded-2xl p-5 mb-4">
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                    <div>
+                        <h2 class="text-xl font-bold text-accent">🌳 Cây Đại Thụ</h2>
+                        <p class="text-gray-400">Cấp <span id="treeLevel">1</span>/4 • <span id="treeRate">0.0015</span> Coin/giây</p>
+                    </div>
+                    <span id="treeStatus" class="px-3 py-1 rounded-full text-sm font-medium bg-green-900/50 text-green-400">🟢 Hoạt động</span>
+                </div>
+                <div class="progress-bar h-3 mb-2">
+                    <div class="progress-fill" id="treeTimerFill" style="width:0%"></div>
+                </div>
+                <p id="treeTimeLeft" class="text-sm text-gray-300 mb-4"></p>
+                <div class="flex gap-3 flex-wrap">
+                    <button id="upgradeTreeBtn" class="btn-game bg-accent hover:bg-accentLight px-6 py-2.5 rounded-xl font-bold">
+                        <i class="fa-solid fa-arrow-up mr-1"></i> Nâng cấp (<span id="upgradeCost">200</span> Coin)
+                    </button>
+                    <button id="activateTreeBtn" class="btn-game hidden bg-blue-600 hover:bg-blue-500 px-6 py-2.5 rounded-xl font-bold">
+                        <i class="fa-solid fa-bolt mr-1"></i> Kích hoạt (12h)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thú cưng -->
+        <div class="tab-content" id="tab-pets">
+            <div class="card-game rounded-2xl p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-accent">🐾 Thú Cưng Hỗ Trợ</h2>
+                    <p class="text-gold font-medium">Tổng cộng: <span id="petTotalBonus">0%</span> tốc độ</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="petContainer"></div>
+            </div>
+        </div>
+
+        <!-- Nhiệm vụ -->
+        <div class="tab-content" id="tab-tasks">
+            <div class="card-game rounded-2xl p-5">
+                <h2 class="text-xl font-bold text-accent mb-4">📋 Nhiệm Vụ Hàng Ngày</h2>
+                <div class="flex items-center justify-between mb-4 p-3 bg-darkBg rounded-xl">
+                    <div>
+                        <p class="font-medium">Điểm danh liên tiếp</p>
+                        <p class="text-sm text-gray-400">Ngày <span id="checkinDay">1</span>/7 • Thưởng <span class="text-gold font-bold" id="checkinReward">20</span> Coin</p>
+                    </div>
+                    <button id="checkinBtn" class="btn-game bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl font-medium">
+                        <i class="fa-solid fa-calendar-check mr-1"></i> Điểm danh
+                    </button>
+                </div>
+                <p id="checkinMsg" class="mt-3 text-sm"></p>
+
+                <h3 class="text-lg font-bold text-accent mt-6 mb-3">🔗 Nhiệm Vụ Vượt Link</h3>
+                <p class="text-xs text-gray-500 mb-3">Mở link, đợi hoàn thành thao tác trên trang, quay lại đây bấm "Xác nhận hoàn thành" để nhận thưởng. Mỗi link tối đa 2 lượt/ngày.</p>
+                <div id="linkTaskContainer" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- Xếp hạng -->
+        <div class="tab-content" id="tab-ranks">
+            <div class="card-game rounded-2xl p-5">
+                <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                    <h2 class="text-xl font-bold text-accent">🏆 Bảng Xếp Hạng Top 15</h2>
+                    <span id="rankUpdated" class="text-xs text-gray-400"></span>
+                </div>
+                <p class="text-xs text-gray-500 mb-3">Biệt danh và điểm Coin của bạn được chia sẻ công khai trên bảng xếp hạng này cho mọi người chơi khác xem.</p>
+                <div id="leaderboard"></div>
+            </div>
+        </div>
+
+        <!-- Rút Tiền -->
+        <div class="tab-content" id="tab-withdraw">
+            <div class="card-game rounded-2xl p-5">
+                <h2 class="text-xl font-bold text-accent mb-4">💸 Rút Tiền Về Tài Khoản Ngân Hàng</h2>
+                
+                <div class="bg-darkBg rounded-xl p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-400">Số dư hiện tại:</span>
+                        <span class="text-gold font-bold text-xl" id="withdrawBalance">0.0000</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400">Yêu cầu tối thiểu:</span>
+                        <span class="text-accent font-bold">5,000 Coin</span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="progress-bar h-2">
+                            <div class="progress-fill" id="withdrawProgressFill" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1" id="withdrawProgressText">0% đạt yêu cầu rút tiền</p>
+                    </div>
+                </div>
+
+                <form id="withdrawForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fa-solid fa-coins mr-1"></i>Số Coin muốn rút
+                        </label>
+                        <input type="number" id="withdrawAmount" class="withdraw-input" 
+                               placeholder="Nhập số coin (tối thiểu 5,000)" min="5000" step="1" required>
+                        <p class="text-xs text-gray-500 mt-1">Tỷ giá quy đổi: 1,000 Coin = 1,000 VNĐ</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fa-solid fa-building-columns mr-1"></i>Tên Ngân Hàng
+                        </label>
+                        <input type="text" id="bankName" class="withdraw-input" 
+                               placeholder="VD: Vietcombank, MB Bank, Techcombank..." required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fa-solid fa-credit-card mr-1"></i>Số Tài Khoản Ngân Hàng
+                        </label>
+                        <input type="text" id="accountNumber" class="withdraw-input" 
+                               placeholder="Nhập số tài khoản" required pattern="[0-9]+">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fa-solid fa-user mr-1"></i>Tên Người Thụ Hưởng
+                        </label>
+                        <input type="text" id="accountHolder" class="withdraw-input" 
+                               placeholder="Nhập tên chủ tài khoản" required>
+                    </div>
+
+                    <div class="bg-warn/10 border border-warn/30 rounded-xl p-3">
+                        <p class="text-xs text-warn">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                            <strong>Lưu ý:</strong> Vui lòng kiểm tra kỹ thông tin trước khi rút. 
+                            Thời gian xử lý từ 24-48 giờ làm việc. Mỗi lần chỉ được rút tối đa 1 lần/ngày.
+                        </p>
+                    </div>
+
+                    <button type="submit" id="withdrawSubmitBtn" 
+                            class="btn-game bg-greenOk hover:bg-green-600 w-full py-3 rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled>
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Gửi Yêu Cầu Rút Tiền
+                    </button>
+                </form>
+
+                <!-- Lịch sử rút tiền -->
+                <div class="mt-6">
+                    <h3 class="text-lg font-bold text-accent mb-3">
+                        <i class="fa-solid fa-clock-rotate-left mr-2"></i>Lịch Sử Rút Tiền
+                    </h3>
+                    <div id="withdrawHistory" class="space-y-2">
+                        <p class="text-sm text-gray-500">Chưa có giao dịch nào</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CẤU HÌNH & TRẠNG THÁI ---
+        const CONFIG = {
+            TREE_UPGRADES: [
+                { level: 1, rate: 0.0015, cost: 0 },
+                { level: 2, rate: 0.0030, cost: 200 },
+                { level: 3, rate: 0.0070, cost: 250 },
+                { level: 4, rate: 0.0100, cost: 350 }
+            ],
+            PETS: [
+                { id: 'mouse', name: 'Chuột Nhỏ', icon: '🐭', bonus: 5, cost: 100 },
+                { id: 'cat', name: 'Mèo Vàng', icon: '🐱', bonus: 10, cost: 250 },
+                { id: 'shiba', name: 'Chó Shiba', icon: '🐕', bonus: 20, cost: 350 },
+                { id: 'dragon', name: 'Rồng Vàng', icon: '🐉', bonus: 30, cost: 450 }
+            ],
+            TWELVE_HOURS_MS: 12 * 60 * 60 * 1000,
+            CHECKIN_BASE: 20,
+            CHECKIN_INCREASE: 0.15,
+            MAX_COIN: 999999.9999,
+            MIN_WITHDRAW: 5000,
+            RANK_PUSH_MS: 15000,
+            RANK_PULL_MS: 12000,
+            SAVE_INTERVAL_MS: 5000,
+            BACKGROUND_MINING_CHECK_MS: 1000,
+            LINK_TASKS: [
+                { id: 'link1', name: 'Vượt Link #1', url: 'https://link4m.org/jA8jOv', reward: 50, dailyLimit: 2, minWaitSec: 20 },
+                { id: 'link2', name: 'Vượt Link #2', url: 'https://linktop.one/vXIdcml1', reward: 50, dailyLimit: 2, minWaitSec: 20 }
+            ]
+        };
+
+        let userData = {
+            coins: 0, treeLevel: 1, treeActiveUntil: null, pets: {},
+            lastCheckinDate: null, checkinStreak: 1,
+            linkTasks: {},
+            lastActiveTimestamp: Date.now(), lastUpdateTick: Date.now(),
+            withdrawHistory: [],
+            lastWithdrawDate: null,
+            totalEarned: 0
+        };
+        let leaderboardData = [];
+        let isProcessing = false;
+        let myId = null;
+        let lastPush = 0;
+        let pendingLinkTask = null;
+        let backgroundMiningInterval = null;
+        let saveInterval = null;
+
+        // --- THÔNG BÁO NỔI ---
+        function showToast(msg, type='info') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // --- CHUYỂN TAB ---
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+                if (btn.dataset.tab === 'ranks') pullLeaderboard();
+                if (btn.dataset.tab === 'withdraw') updateWithdrawTab();
+            });
+        });
+
+        // --- LƯU TRỮ CỤC BỘ (với backup) ---
+        async function loadUser() {
+            try {
+                // Load từ storage chính
+                const r = await window.storage.get('goldenTreeUser');
+                if (r && r.value) {
+                    const s = JSON.parse(r.value);
+                    userData = Object.assign(userData, s);
+                }
+                
+                // Load từ backup nếu có và mới hơn
+                const backup = localStorage.getItem('goldenTreeUser_backup');
+                if (backup) {
+                    const backupData = JSON.parse(backup);
+                    if (backupData.lastActiveTimestamp > userData.lastActiveTimestamp) {
+                        userData = Object.assign(userData, backupData);
+                        console.log('📦 Đã khôi phục từ backup với dữ liệu mới hơn');
+                    }
+                }
+                
+                // Khởi tạo các trường thiếu
+                if (!userData.pets) userData.pets = {};
+                if (!userData.linkTasks) userData.linkTasks = {};
+                if (!userData.withdrawHistory) userData.withdrawHistory = [];
+                if (!userData.lastActiveTimestamp) userData.lastActiveTimestamp = Date.now();
+                if (!userData.lastUpdateTick) userData.lastUpdateTick = Date.now();
+                if (!userData.totalEarned) userData.totalEarned = 0;
+                userData.coins = Math.min(userData.coins, CONFIG.MAX_COIN);
+            } catch (e) { 
+                console.error('Lỗi load dữ liệu:', e);
+                // Thử load từ backup
+                const backup = localStorage.getItem('goldenTreeUser_backup');
+                if (backup) {
+                    userData = Object.assign(userData, JSON.parse(backup));
+                }
+            }
+
+            try {
+                const idRes = await window.storage.get('userId');
+                myId = idRes && idRes.value;
+            } catch (e) { /* chưa có id */ }
+            if (!myId) {
+                myId = 'user_' + Math.random().toString(36).slice(2, 8);
+                try { await window.storage.set('userId', myId); } catch (e) {}
+            }
+        }
+
+        async function saveUser() {
+            const dataToSave = JSON.stringify(userData);
+            
+            // Lưu vào storage chính
+            try { 
+                await window.storage.set('goldenTreeUser', dataToSave); 
+            } catch (e) { 
+                console.error('Lỗi lưu storage chính:', e); 
+            }
+            
+            // Lưu backup vào localStorage
+            try {
+                localStorage.setItem('goldenTreeUser_backup', dataToSave);
+            } catch (e) {
+                console.error('Lỗi lưu backup:', e);
+            }
+        }
+
+        // --- TÍNH TIỀN NGOẠI TUYẾN & CHẠY NỀN ---
+        function calculateOfflineEarnings() {
+            const now = Date.now();
+            const timeDiff = now - userData.lastActiveTimestamp;
+            if(timeDiff <= 0) return 0;
+            
+            let totalEarned = 0;
+            
+            // Tính cho cây
+            if(userData.treeActiveUntil && userData.lastActiveTimestamp < userData.treeActiveUntil) {
+                const end = Math.min(now, userData.treeActiveUntil);
+                const start = Math.max(userData.lastActiveTimestamp, userData.treeActiveUntil - CONFIG.TWELVE_HOURS_MS);
+                const seconds = Math.max(0, (end - start) / 1000);
+                
+                if (seconds > 0) {
+                    const base = CONFIG.TREE_UPGRADES[userData.treeLevel-1].rate;
+                    let bonus = 0;
+                    CONFIG.PETS.forEach(p => {
+                        const d = userData.pets[p.id];
+                        if(d?.owned && d?.activeUntil && userData.lastActiveTimestamp < d.activeUntil) {
+                            const petActiveTime = Math.min(seconds, (d.activeUntil - userData.lastActiveTimestamp) / 1000);
+                            if (petActiveTime > 0) bonus += p.bonus * (petActiveTime / seconds);
+                        }
+                    });
+                    totalEarned += base * (1 + bonus / 100) * seconds;
+                }
+            }
+            
+            if (totalEarned > 0) {
+                userData.coins = Math.min(CONFIG.MAX_COIN, userData.coins + totalEarned);
+                userData.totalEarned += totalEarned;
+            }
+            
+            userData.lastActiveTimestamp = userData.lastUpdateTick = now;
+            return totalEarned;
+        }
+
+        function startBackgroundMining() {
+            if (backgroundMiningInterval) clearInterval(backgroundMiningInterval);
+            
+            backgroundMiningInterval = setInterval(() => {
+                const now = Date.now();
+                const d = (now - userData.lastUpdateTick) / 1000;
+                userData.lastUpdateTick = now;
+                
+                let earned = 0;
+                if(userData.treeActiveUntil && now < userData.treeActiveUntil) {
+                    const b = CONFIG.TREE_UPGRADES[userData.treeLevel-1].rate;
+                    let bonus = 0;
+                    CONFIG.PETS.forEach(p => {
+                        const dt = userData.pets[p.id];
+                        if(dt?.owned && dt?.activeUntil && now < dt.activeUntil) bonus += p.bonus;
+                    });
+                    earned = b * (1 + bonus / 100) * d;
+                    userData.coins = Math.min(CONFIG.MAX_COIN, userData.coins + earned);
+                    userData.totalEarned += earned;
+                }
+                
+                // Cập nhật UI nếu tab đang active
+                updateUI();
+                
+                // Cập nhật withdraw tab nếu đang mở
+                if (document.getElementById('tab-withdraw') && 
+                    document.getElementById('tab-withdraw').classList.contains('active')) {
+                    updateWithdrawTab();
+                }
+                
+                // Cập nhật indicator
+                updateMiningIndicator();
+            }, CONFIG.BACKGROUND_MINING_CHECK_MS);
+        }
+
+        function updateMiningIndicator() {
+            const indicator = document.getElementById('miningIndicator');
+            if (indicator) {
+                const now = Date.now();
+                const isActive = userData.treeActiveUntil && now < userData.treeActiveUntil;
+                indicator.style.display = isActive ? 'inline-block' : 'none';
+            }
+        }
+
+        // --- CẬP NHẬT GIAO DIỆN ---
+        function updateUI() {
+            document.getElementById('coinBalance').textContent = userData.coins.toFixed(4);
+
+            // Hiển thị thu nhập offline nếu có
+            const offlineEl = document.getElementById('offlineEarnings');
+            if (offlineEl && userData.totalEarned > 0) {
+                offlineEl.textContent = `📊 Tổng đã khai thác: ${userData.totalEarned.toFixed(2)} Coin`;
+            }
+
+            // Cây
+            const t = CONFIG.TREE_UPGRADES[userData.treeLevel-1];
+            document.getElementById('treeLevel').textContent = userData.treeLevel;
+            document.getElementById('treeRate').textContent = t.rate.toFixed(4);
+            const now = Date.now();
+            const active = userData.treeActiveUntil && now < userData.treeActiveUntil;
+            const st = document.getElementById('treeStatus');
+            st.textContent = active ? '🟢 Hoạt động' : '🟠 Ngủ';
+            st.className = `px-3 py-1 rounded-full text-sm font-medium ${active?'bg-green-900/50 text-green-400':'bg-orange-900/50 text-orange-400'}`;
+
+            const upBtn = document.getElementById('upgradeTreeBtn');
+            const actBtn = document.getElementById('activateTreeBtn');
+            if(userData.treeLevel <4) {
+                const n = CONFIG.TREE_UPGRADES[userData.treeLevel];
+                document.getElementById('upgradeCost').textContent = n.cost;
+                upBtn.disabled = userData.coins < n.cost || isProcessing;
+                upBtn.classList.remove('hidden');
+            } else upBtn.classList.add('hidden');
+            actBtn.classList.toggle('hidden', active);
+
+            if(active) {
+                const r = userData.treeActiveUntil - now;
+                const h = Math.floor(r/3600000), m = Math.floor((r%3600000)/60000);
+                document.getElementById('treeTimeLeft').textContent = `Còn ${h}h ${m} phút hiệu lực`;
+            } else document.getElementById('treeTimeLeft').textContent = 'Hết hạn, nhấn kích hoạt để tiếp tục';
+            document.getElementById('treeTimerFill').style.width = active ? `${((CONFIG.TWELVE_HOURS_MS-(userData.treeActiveUntil-now))/CONFIG.TWELVE_HOURS_MS)*100}%` : '0%';
+
+            // Thú cưng
+            let totalB = 0;
+            const pCont = document.getElementById('petContainer');
+            pCont.innerHTML = '';
+            CONFIG.PETS.forEach(pet => {
+                const d = userData.pets[pet.id] || {owned:false,activeUntil:null};
+                const pAct = d.owned && d.activeUntil && now < d.activeUntil;
+                if(pAct) totalB += pet.bonus;
+
+                const card = document.createElement('div');
+                card.className = 'card-game p-3 rounded-xl text-center';
+                card.innerHTML = `
+                    <div class="text-3xl mb-1">${pet.icon}</div>
+                    <div class="font-medium">${pet.name}</div>
+                    <div class="text-xs text-gray-400">+${pet.bonus}% tốc độ</div>
+                    <div class="text-xs mt-1 ${pAct?'text-green-400':'text-orange-400'}">${d.owned?(pAct?'🟢 Đang hỗ trợ':'😴 Đang ngủ'):`${pet.cost} Coin`}</div>
+                    <div class="progress-bar h-1.5 my-2"><div class="progress-fill" style="width:${pAct?((CONFIG.TWELVE_HOURS_MS-(d.activeUntil-now))/CONFIG.TWELVE_HOURS_MS*100):0}%"></div></div>
+                `;
+                const btn = document.createElement('button');
+                if(!d.owned) {
+                    btn.className = 'btn-game w-full text-xs py-1.5 rounded-lg mt-1.5 bg-accent';
+                    btn.textContent = 'Mua';
+                    btn.disabled = userData.coins < pet.cost || isProcessing;
+                    btn.onclick = ()=>buyPet(pet.id);
+                } else if(!pAct) {
+                    btn.className = 'btn-game w-full text-xs py-1.5 rounded-lg mt-1.5 bg-blue-600';
+                    btn.textContent = 'Đánh thức';
+                    btn.disabled = isProcessing;
+                    btn.onclick = ()=>wakePet(pet.id);
+                } else {
+                    btn.className = 'w-full text-xs py-1.5 rounded-lg mt-1.5 bg-gray-700 cursor-default';
+                    btn.textContent = 'Hoạt động';
+                    btn.disabled = true;
+                }
+                card.appendChild(btn);
+                pCont.appendChild(card);
+            });
+            document.getElementById('petTotalBonus').textContent = `${totalB}%`;
+
+            // Nhiệm vụ
+            const today = new Date().toISOString().split('T')[0];
+            const canCheck = userData.lastCheckinDate !== today && !isProcessing;
+            document.getElementById('checkinDay').textContent = userData.checkinStreak;
+            const rew = Math.floor(CONFIG.CHECKIN_BASE * Math.pow(1+CONFIG.CHECKIN_INCREASE, userData.checkinStreak-1));
+            document.getElementById('checkinReward').textContent = rew;
+            document.getElementById('checkinBtn').disabled = !canCheck;
+            document.getElementById('checkinMsg').textContent = canCheck ? '' : '✅ Đã điểm danh hôm nay';
+            
+            renderLeaderboard();
+            renderLinkTasks();
+            updateMiningIndicator();
+        }
+
+        // --- CẬP NHẬT TAB RÚT TIỀN ---
+        function updateWithdrawTab() {
+            const bal = document.getElementById('withdrawBalance');
+            if (bal) bal.textContent = userData.coins.toFixed(4);
+
+            const progress = Math.min((userData.coins / CONFIG.MIN_WITHDRAW) * 100, 100);
+            const fill = document.getElementById('withdrawProgressFill');
+            const text = document.getElementById('withdrawProgressText');
+            if (fill) fill.style.width = progress + '%';
+            if (text) text.textContent = progress.toFixed(1) + '% đạt yêu cầu rút tiền';
+
+            const submitBtn = document.getElementById('withdrawSubmitBtn');
+            const amountInput = document.getElementById('withdrawAmount');
+            if (submitBtn && amountInput) {
+                const canWithdraw = userData.coins >= CONFIG.MIN_WITHDRAW && !isProcessing;
+                submitBtn.disabled = !canWithdraw;
+            }
+
+            renderWithdrawHistory();
+        }
+
+        function renderWithdrawHistory() {
+            const container = document.getElementById('withdrawHistory');
+            if (!container) return;
+
+            if (!userData.withdrawHistory || userData.withdrawHistory.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500">Chưa có giao dịch nào</p>';
+                return;
+            }
+
+            container.innerHTML = userData.withdrawHistory.slice().reverse().map((item, index) => {
+                const date = new Date(item.timestamp);
+                const dateStr = date.toLocaleDateString('vi-VN', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit' 
+                });
+                const statusColors = {
+                    'pending': 'text-yellow-400',
+                    'processing': 'text-blue-400',
+                    'completed': 'text-green-400',
+                    'rejected': 'text-red-400'
+                };
+                const statusLabels = {
+                    'pending': 'Đang chờ',
+                    'processing': 'Đang xử lý',
+                    'completed': 'Hoàn thành',
+                    'rejected': 'Từ chối'
+                };
+                return `
+                    <div class="bg-darkBg/50 rounded-lg p-3 flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-medium">${item.amount} Coin → ${item.vndAmount.toLocaleString('vi-VN')} VNĐ</p>
+                            <p class="text-xs text-gray-400">${item.bankName} - ${item.accountNumber.slice(-4).padStart(item.accountNumber.length, '*')}</p>
+                            <p class="text-xs text-gray-500">${dateStr}</p>
+                        </div>
+                        <span class="text-xs font-medium ${statusColors[item.status] || 'text-gray-400'}">
+                            ${statusLabels[item.status] || item.status}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- XỬ LÝ RÚT TIỀN ---
+        async function handleWithdraw(e) {
+            e.preventDefault();
+            if (isProcessing) return;
+
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const bankName = document.getElementById('bankName').value.trim();
+            const accountNumber = document.getElementById('accountNumber').value.trim();
+            const accountHolder = document.getElementById('accountHolder').value.trim();
+
+            if (!amount || amount < CONFIG.MIN_WITHDRAW) {
+                showToast(`Số coin rút tối thiểu là ${CONFIG.MIN_WITHDRAW.toLocaleString('vi-VN')} Coin`, 'error');
+                return;
+            }
+            if (amount > userData.coins) {
+                showToast('Số dư không đủ để rút', 'error');
+                return;
+            }
+            if (!bankName || !accountNumber || !accountHolder) {
+                showToast('Vui lòng nhập đầy đủ thông tin ngân hàng', 'error');
+                return;
+            }
+            if (!/^\d+$/.test(accountNumber)) {
+                showToast('Số tài khoản không hợp lệ', 'error');
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            if (userData.lastWithdrawDate === today) {
+                showToast('Bạn đã rút tiền hôm nay rồi, vui lòng quay lại vào ngày mai', 'error');
+                return;
+            }
+
+            isProcessing = true;
+            
+            const vndAmount = amount;
+            userData.coins -= amount;
+            userData.lastWithdrawDate = today;
+            
+            if (!userData.withdrawHistory) userData.withdrawHistory = [];
+            userData.withdrawHistory.push({
+                amount: amount,
+                vndAmount: vndAmount,
+                bankName: bankName,
+                accountNumber: accountNumber,
+                accountHolder: accountHolder,
+                timestamp: Date.now(),
+                status: 'pending'
+            });
+
+            await saveUser();
+            updateUI();
+            updateWithdrawTab();
+            pushScore();
+
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('bankName').value = '';
+            document.getElementById('accountNumber').value = '';
+            document.getElementById('accountHolder').value = '';
+
+            showToast(`✅ Yêu cầu rút ${amount.toLocaleString('vi-VN')} Coin (${vndAmount.toLocaleString('vi-VN')} VNĐ) đã được gửi!`, 'success');
+            
+            isProcessing = false;
+        }
+
+        // --- NHIỆM VỤ VƯỢT LINK ---
+        function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+        function getLinkState(id) {
+            const today = todayStr();
+            const st = userData.linkTasks[id];
+            if (!st || st.date !== today) return { date: today, used: 0 };
+            return st;
+        }
+
+        function renderLinkTasks() {
+            const c = document.getElementById('linkTaskContainer');
+            if (!c) return;
+            c.innerHTML = '';
+            CONFIG.LINK_TASKS.forEach(task => {
+                const st = getLinkState(task.id);
+                const remaining = Math.max(0, task.dailyLimit - st.used);
+                const isPending = pendingLinkTask && pendingLinkTask.id === task.id;
+
+                const row = document.createElement('div');
+                row.className = 'p-3 bg-darkBg rounded-xl';
+
+                let statusHtml = '';
+                let actionHtml = '';
+                if (remaining <= 0) {
+                    statusHtml = `<p class="text-sm text-orange-400 mt-1">✅ Đã dùng hết ${task.dailyLimit} lượt hôm nay</p>`;
+                    actionHtml = `<button class="btn-game bg-gray-700 px-4 py-2 rounded-xl font-medium" disabled>Hết lượt</button>`;
+                } else if (isPending) {
+                    const elapsed = (Date.now() - pendingLinkTask.openedAt) / 1000;
+                    const waitLeft = Math.max(0, Math.ceil(task.minWaitSec - elapsed));
+                    const canConfirm = elapsed >= task.minWaitSec && pendingLinkTask.awayConfirmed;
+                    let hint;
+                    if (!pendingLinkTask.awayConfirmed) hint = 'Hãy mở link ở tab mới và hoàn thành thao tác trên đó trước khi quay lại.';
+                    else if (waitLeft > 0) hint = `Vui lòng đợi thêm ${waitLeft}s...`;
+                    else hint = 'Đã đủ điều kiện, bấm xác nhận để nhận thưởng!';
+                    statusHtml = `<p class="text-sm text-blue-400 mt-1">${hint}</p>`;
+                    actionHtml = `<button class="btn-game ${canConfirm?'bg-greenOk':'bg-gray-700'} px-4 py-2 rounded-xl font-medium" ${canConfirm?'':'disabled'} onclick="confirmLinkTask('${task.id}')">
+                        <i class="fa-solid fa-check mr-1"></i> Xác nhận hoàn thành
+                    </button>`;
+                } else {
+                    statusHtml = `<p class="text-sm text-gray-400 mt-1">Còn ${remaining}/${task.dailyLimit} lượt hôm nay • Thưởng ${task.reward} Coin</p>`;
+                    actionHtml = `<button class="btn-game bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-medium" onclick="startLinkTask('${task.id}')">
+                        <i class="fa-solid fa-up-right-from-square mr-1"></i> Làm nhiệm vụ
+                    </button>`;
+                }
+
+                row.innerHTML = `<div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <p class="font-medium">${task.name}</p>
+                        ${statusHtml}
+                    </div>
+                    <div>${actionHtml}</div>
+                </div>`;
+                c.appendChild(row);
+            });
+        }
+
+        function startLinkTask(id) {
+            if (isProcessing) return;
+            const task = CONFIG.LINK_TASKS.find(t => t.id === id);
+            if (!task) return;
+            const st = getLinkState(id);
+            if (st.used >= task.dailyLimit) return;
+            if (pendingLinkTask && pendingLinkTask.id !== id) {
+                showToast('Bạn đang có một nhiệm vụ vượt link chưa xác nhận xong.', 'info');
+                return;
+            }
+            window.open(task.url, '_blank', 'noopener');
+            pendingLinkTask = { id, openedAt: Date.now(), awayConfirmed: false };
+            updateUI();
+        }
+
+        function confirmLinkTask(id) {
+            if (isProcessing || !pendingLinkTask || pendingLinkTask.id !== id) return;
+            const task = CONFIG.LINK_TASKS.find(t => t.id === id);
+            if (!task) return;
+            const elapsed = (Date.now() - pendingLinkTask.openedAt) / 1000;
+            if (elapsed < task.minWaitSec || !pendingLinkTask.awayConfirmed) {
+                showToast('Chưa đủ điều kiện xác nhận. Hãy mở link, hoàn thành thao tác rồi quay lại.', 'error');
+                return;
+            }
+            const st = getLinkState(id);
+            if (st.used >= task.dailyLimit) {
+                showToast('Bạn đã dùng hết lượt cho link này hôm nay.', 'error');
+                pendingLinkTask = null; updateUI();
+                return;
+            }
+            isProcessing = true;
+            st.used += 1;
+            userData.linkTasks[id] = st;
+            userData.coins = Math.min(CONFIG.MAX_COIN, userData.coins + task.reward);
+            userData.totalEarned += task.reward;
+            pendingLinkTask = null;
+            saveUser(); updateUI(); pushScore();
+            showToast(`✅ Nhận ${task.reward} Coin từ ${task.name}!`, 'success');
+            isProcessing = false; updateUI();
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                // Khi quay lại tab, tính lại thu nhập offline
+                const earned = calculateOfflineEarnings();
+                if (earned > 0) {
+                    showToast(`🎉 Chào mừng trở lại! Bạn đã kiếm được ${earned.toFixed(4)} Coin khi vắng mặt`, 'info');
+                }
+                
+                // Xử lý pending link task
+                if (pendingLinkTask && !pendingLinkTask.awayConfirmed) {
+                    const elapsed = (Date.now() - pendingLinkTask.openedAt) / 1000;
+                    if (elapsed >= 3) {
+                        pendingLinkTask.awayConfirmed = true;
+                        updateUI();
+                    }
+                }
+                
+                saveUser();
+            } else {
+                // Khi rời tab, lưu trạng thái
+                userData.lastActiveTimestamp = Date.now();
+                saveUser();
+            }
+        });
+
+        // --- CHỨC NĂNG CHÍNH ---
+        async function buyPet(id) {
+            if(isProcessing) return;
+            const p = CONFIG.PETS.find(x=>x.id===id);
+            if(!p || userData.coins < p.cost) return;
+            isProcessing = true;
+            userData.coins -= p.cost;
+            userData.pets[id] = {owned:true, activeUntil:Date.now()+CONFIG.TWELVE_HOURS_MS};
+            await saveUser(); updateUI(); pushScore();
+            showToast(`✅ Mua ${p.name} thành công! +${p.bonus}% tốc độ`, 'success');
+            isProcessing=false; updateUI();
+        }
+        async function wakePet(id) {
+            if(isProcessing || !userData.pets[id]?.owned) return;
+            isProcessing = true;
+            userData.pets[id].activeUntil = Date.now()+CONFIG.TWELVE_HOURS_MS;
+            await saveUser(); updateUI();
+            isProcessing=false; updateUI();
+        }
+        async function upgradeTree() {
+            if(isProcessing || userData.treeLevel>=4) return;
+            const n = CONFIG.TREE_UPGRADES[userData.treeLevel];
+            if(userData.coins < n.cost) return;
+            isProcessing = true;
+            userData.coins -= n.cost;
+            userData.treeLevel++;
+            userData.treeActiveUntil = Date.now()+CONFIG.TWELVE_HOURS_MS;
+            await saveUser(); updateUI(); pushScore();
+            showToast(`✅ Nâng cấp thành công! Tốc độ mới: ${CONFIG.TREE_UPGRADES[userData.treeLevel-1].rate} Coin/s`, 'success');
+            isProcessing=false; updateUI();
+        }
+        async function activateTree() {
+            if(isProcessing) return;
+            isProcessing = true;
+            userData.treeActiveUntil = Date.now()+CONFIG.TWELVE_HOURS_MS;
+            await saveUser(); updateUI();
+            showToast('✅ Cây đã thức giấc, khai thác 12 giờ tiếp theo!', 'success');
+            isProcessing=false; updateUI();
+        }
+        async function checkin() {
+            if(isProcessing) return;
+            const today = new Date().toISOString().split('T')[0];
+            if(userData.lastCheckinDate === today) return;
+            isProcessing = true;
+            const yest = new Date(Date.now()-86400000).toISOString().split('T')[0];
+            userData.checkinStreak = userData.lastCheckinDate===yest && userData.checkinStreak<7 ? userData.checkinStreak+1 : 1;
+            const rew = Math.floor(CONFIG.CHECKIN_BASE * Math.pow(1+CONFIG.CHECKIN_INCREASE, userData.checkinStreak-1));
+            userData.coins = Math.min(CONFIG.MAX_COIN, userData.coins+rew);
+            userData.totalEarned += rew;
+            userData.lastCheckinDate = today;
+            if(userData.checkinStreak>=7) userData.checkinStreak=1;
+            await saveUser(); updateUI(); pushScore();
+            showToast(`✅ Điểm danh thành công! +${rew} Coin`, 'success');
+            isProcessing=false; updateUI();
+        }
+
+        // --- BẢNG XẾP HẠNG ---
+        async function pushScore(force) {
+            const now = Date.now();
+            if (!force && now - lastPush < 3000) return;
+            lastPush = now;
+            try {
+                await window.storage.set(`score:${myId}`, JSON.stringify({
+                    id: myId, coins: userData.coins, ts: now
+                }), true);
+            } catch (e) { console.error('Không gửi được điểm lên bảng xếp hạng chung', e); }
+        }
+
+        async function pullLeaderboard() {
+            try {
+                const list = await window.storage.list('score:', true);
+                if (!list || !list.keys) return;
+                const entries = [];
+                for (const key of list.keys) {
+                    try {
+                        const r = await window.storage.get(key, true);
+                        if (r && r.value) entries.push(JSON.parse(r.value));
+                    } catch (e) { /* bỏ qua mục lỗi */ }
+                }
+                leaderboardData = entries;
+                document.getElementById('rankUpdated').textContent =
+                    'Cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN');
+                renderLeaderboard();
+            } catch (e) {
+                console.error('Không tải được bảng xếp hạng chung', e);
+            }
+        }
+
+        function renderLeaderboard() {
+            const c = document.getElementById('leaderboard');
+            if (!c) return;
+            const s = [...leaderboardData].sort((a,b)=>b.coins-a.coins).slice(0,15);
+            if (s.length === 0) {
+                c.innerHTML = '<p class="text-sm text-gray-400">Chưa có dữ liệu, hãy chơi để lên bảng xếp hạng!</p>';
+                return;
+            }
+            c.innerHTML = s.map((e,i)=>{
+                const cls = i==0?'rank-1':i==1?'rank-2':i==2?'rank-3':'';
+                const mine = e.id === myId ? 'me' : '';
+                const label = e.id === myId ? `${e.id.slice(0,8)} (bạn)` : e.id.slice(0,8);
+                return `<div class="rank-item ${cls} ${mine} p-3 rounded-lg mb-2 flex justify-between items-center bg-darkBg/50">
+                    <span>#${i+1} ${label}</span>
+                    <span class="font-medium">${e.coins.toFixed(2)} Coin</span>
+                </div>`;
+            }).join('');
+        }
+
+        // --- KHỞI ĐỘNG ---
+        (async function init() {
+            await loadUser();
+            
+            // Tính thu nhập offline
+            const earned = calculateOfflineEarnings();
+            if (earned > 0) {
+                setTimeout(() => {
+                    showToast(`🎉 Bạn đã kiếm được ${earned.toFixed(4)} Coin khi offline!`, 'info');
+                }, 1000);
+            }
+            
+            await saveUser();
+            updateUI();
+            await pushScore(true);
+            await pullLeaderboard();
+
+            // Bắt đầu khai thác nền
+            startBackgroundMining();
+
+            // Tự động lưu mỗi 5 giây
+            if (saveInterval) clearInterval(saveInterval);
+            saveInterval = setInterval(() => { 
+                saveUser(); 
+            }, CONFIG.SAVE_INTERVAL_MS);
+            
+            // Push score và pull leaderboard
+            setInterval(() => { pushScore(); }, CONFIG.RANK_PUSH_MS);
+            setInterval(() => { pullLeaderboard(); }, CONFIG.RANK_PULL_MS);
+
+            // Lưu trước khi đóng trang
+            window.addEventListener('beforeunload', () => {
+                userData.lastActiveTimestamp = Date.now();
+                saveUser();
+            });
+
+            // Gán sự kiện
+            document.getElementById('upgradeTreeBtn').onclick = upgradeTree;
+            document.getElementById('activateTreeBtn').onclick = activateTree;
+            document.getElementById('checkinBtn').onclick = checkin;
+            document.getElementById('withdrawForm').onsubmit = handleWithdraw;
+
+            document.getElementById('withdrawAmount').addEventListener('input', function() {
+                updateWithdrawTab();
+            });
+
+            console.log('🌳 Đại Thụ Khai Thác đã sẵn sàng!');
+            console.log('⛏️ Khai thác nền đang hoạt động');
+            console.log('💾 Dữ liệu được lưu mỗi 5 giây + backup');
+        })();
+    </script>
+</body>
+</html>
